@@ -60,6 +60,7 @@ export interface MultiSliderProps {
     min?: number;
     max?: number;
     step?: number;
+    steps?: number[];
 
     stepsAs?: StepsAsProps[];
 

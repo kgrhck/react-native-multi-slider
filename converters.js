@@ -48,9 +48,7 @@ export function valueToPosition(
   const index = closest(valuesArray, value);
   const arrLength = valuesArray.length - 1;
   const validIndex = index === -1 ? arrLength : index;
-  const output =
-    ((sliderLength - markerSize) * validIndex) / arrLength + markerSize / 2;
-
+  const output = ((sliderLength - markerSize) * validIndex) / arrLength + markerSize / 2;
   return output;
 }
 

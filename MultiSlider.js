@@ -23,6 +23,7 @@ export default class MultiSlider extends React.Component {
     onValuesChangeFinish: values => {},
     onMarkersPosition: values => {},
     step: 1,
+    steps: [],
     min: 0,
     max: 10,
     touchDimensions: {
@@ -67,20 +68,35 @@ export default class MultiSlider extends React.Component {
         'You should provide either "minMarkerOverlapDistance" or "minMarkerOverlapStepDistance", not both. Expect unreliable results.',
       );
     }
-
-    this.optionsArray =
-      this.props.optionsArray ||
-      createArray(this.props.min, this.props.max, this.props.step);
-    this.stepLength = this.props.sliderLength / (this.optionsArray.length - 1);
+    this._initOptionsArray();
 
     var initialValues = this.props.values.map(value =>
-      valueToPosition(
-        value,
-        this.optionsArray,
-        this.props.sliderLength,
-        this.props.markerSize,
-      ),
+        valueToPosition(
+            value,
+            this.optionsArray,
+            this.props.sliderLength,
+            this.props.markerSize,
+        ),
     );
+    this.state = {
+      pressedOne: true,
+      valueOne: this.props.values[0],
+      valueTwo: this.props.values[1],
+      pastOne: initialValues[0],
+      pastTwo: initialValues[1],
+      positionOne: initialValues[0],
+      positionTwo: initialValues[1],
+    };
+    this.subscribePanResponder();
+  }
+
+  _initOptionsArray() {
+    if (this.props.steps.length > 0) {
+      this.optionsArray = this.props.optionsArray || this.props.steps;
+    } else {
+      this.optionsArray = this.props.optionsArray || createArray(this.props.min, this.props.max, this.props.step);
+    }
+    this.stepLength = this.props.sliderLength / (this.optionsArray.length - 1);
 
     var tempStepsAs = {};
     this.props.stepsAs.forEach(step => {
@@ -106,18 +122,6 @@ export default class MultiSlider extends React.Component {
         };
       }
     });
-
-    this.state = {
-      pressedOne: true,
-      valueOne: this.props.values[0],
-      valueTwo: this.props.values[1],
-      pastOne: initialValues[0],
-      pastTwo: initialValues[1],
-      positionOne: initialValues[0],
-      positionTwo: initialValues[1],
-    };
-
-    this.subscribePanResponder();
   }
 
   subscribePanResponder = () => {
@@ -218,20 +222,20 @@ export default class MultiSlider extends React.Component {
     ) {
       var value = positionToValue(
         confined,
-        this.optionsArray,
+        createArray(this.props.min, this.props.max, this.props.step),
         this.props.sliderLength,
         this.props.markerSize,
       );
+      console.log(value);
       var snapped = valueToPosition(
         value,
-        this.optionsArray,
+        createArray(this.props.min, this.props.max, this.props.step),
         this.props.sliderLength,
         this.props.markerSize,
       );
       this.setState({
         positionOne: this.props.snapped ? snapped : confined,
       });
-
       if (value !== this.state.valueOne) {
         this.setState(
           {
@@ -287,13 +291,13 @@ export default class MultiSlider extends React.Component {
     ) {
       var value = positionToValue(
         confined,
-        this.optionsArray,
+          createArray(this.props.min, this.props.max, this.props.step),
         this.props.sliderLength,
         this.props.markerSize,
       );
       var snapped = valueToPosition(
         value,
-        this.optionsArray,
+          createArray(this.props.min, this.props.max, this.props.step),
         this.props.sliderLength,
         this.props.markerSize,
       );
@@ -443,7 +447,7 @@ export default class MultiSlider extends React.Component {
   }
 
   getSteps() {
-    const stepLength = this.props.sliderLength / (this.optionsArray.length - 1);
+    this._initOptionsArray();
     const textStyles = [
       styles.stepLabel,
       this.props.stepLabelStyle,
@@ -464,11 +468,11 @@ export default class MultiSlider extends React.Component {
       var step = this.stepsAs[index];
       return (
         <View
-          key={number}
+          key={index}
           style={[
             styles.step,
             this.props.stepStyle,
-            { left: stepLength * index },
+            { left: step.stepLabel/(this.props.max/this.props.sliderLength)},
           ]}
         >
           {this.props.showStepMarkers &&
@@ -479,7 +483,7 @@ export default class MultiSlider extends React.Component {
           {this.props.showStepLabels && (
             <Text
               style={textStyles}
-            >{`${step.prefix}${step.stepLabel}${step.suffix}`}</Text>
+            >{step.stepLabel}</Text>
           )}
         </View>
       );
@@ -751,8 +755,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 2,
     width: 6,
-    height: 6,
-    backgroundColor: '#0000008c',
+    height: 160,
+    backgroundColor: 'white',
     borderRadius: 3,
   },
   stepLabel: {
